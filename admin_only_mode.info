@@ -1,0 +1,5 @@
+; $Id$
+name = Admin Only Mode
+description = Provides a site mode in which only admins can be logged in
+core = 6.x
+package = Other

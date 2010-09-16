@@ -1,0 +1,89 @@
+<?php
+// $Id$
+/**
+ * @file
+ *
+ * Adds option to put site in admin-only mode
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function admin_only_mode_init() {
+  global $user;
+
+  $in_admin_only = variable_get('admin_only_mode',FALSE);
+
+  if ($in_admin_only && user_is_logged_in()) {
+    $message = variable_get('admin_only_mode_message');
+    if ($user->uid != 1) {
+      require_once drupal_get_path('module', 'user') .'/user.pages.inc';
+      user_logout(); # Perhaps a little harsh -- TODO: Show a message saying what happened
+    } else if (!empty($message)) {
+      // Show a message to the admin reminding him that we're in admin-only mode
+      drupal_set_message($message, 'status', FALSE /*repeat*/);
+    }
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+* Alter the Site Login form
+*/
+function admin_only_mode_form_user_login_alter(&$form, $form_state) {
+  // If the site is in admin-only mode, show the message at the top of this form
+  $in_admin_only = variable_get('admin_only_mode',FALSE);
+  $message = variable_get('admin_only_mode_message');
+  if ($in_admin_only) {
+    if (!empty($message)) {
+      $form['#prefix'] = $message;
+    }
+    $form['#validate'] = array_merge(
+      array('admin_only_mode_user_login_validator'),
+      $form['#validate']
+    );
+  }
+}
+
+function admin_only_mode_user_login_validator($form, &$form_state) {
+
+  $in_admin_only = variable_get('admin_only_mode',FALSE);
+
+  if ($in_admin_only) {
+
+    $myuser = user_load(array('name' => $form_state['values']['name']));
+
+    if ($myuser->uid != 1) {
+      form_set_error('name', t('Sorry, only the admin user may login currently'));
+      watchdog('admin_only_mode', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
+    }
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+* Alter the Site Maintenance form
+*/
+function admin_only_mode_form_system_site_maintenance_settings_alter(&$form, $form_state) {
+  $form["admin_only_mode_fieldset"] = array(
+    "#title" => "Admin Only Mode",
+    "#type" => "fieldset",
+    "#weight" => 0,
+    "#collapsible" => FALSE,
+  );
+  
+  $form["admin_only_mode_fieldset"]["admin_only_mode"] = array(
+    "#type" => "checkbox",
+    "#title" => t("Admin only mode"),
+    "#description" => t("When set, only allow admins to be logged into the site. Other users will be logged out."),
+    "#weight" => 0,
+    "#default_value" => variable_get('admin_only_mode', FALSE),
+  );
+
+  $form["admin_only_mode_fieldset"]["admin_only_mode_message"] = array(
+    "#type" => "textarea",
+    "#title" => t("Site admin-only message"),
+    "#description" => t("Message to show visitors when the site is in admin-only mode. Leave this area empty to disable the display of a message."),
+    "#default_value" => variable_get('admin_only_mode_message', t("@sitename is currently in maintenance. During this maintenance only the admin user may login.", array("@sitename" => variable_get('site_name', 'drupal')))),
+  );
+}

@@ -1,0 +1,22 @@
+<?php
+// $Id$
+/**
+ * @file
+ *   Install file for admin_only_mode module.
+ */
+
+/**
+* Implements hook_install().
+*/
+function admin_only_mode_install() {
+  variable_set('admin_only_mode', 0);
+  variable_set('admin_only_mode_message', t("@sitename is currently in admin-only mode. During this time only the admin user may login.", array("@sitename" => variable_get('site_name', 'drupal'))));
+}
+
+/**
+* Implements hook_uninstall().
+*/
+function admin_only_mode_uninstall() {
+  variable_del('admin_only_mode');
+  variable_del('admin_only_mode_message');
+}
