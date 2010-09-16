@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * Adds option to put site in admin-only mode
+ * Adds an option to put the site in admin-only mode.
  */
 
 /**
@@ -27,9 +27,9 @@ function admin_only_mode_init() {
 }
 
 /**
-* Implementation of hook_form_FORM_ID_alter().
-* Alter the Site Login form
-*/
+ * Implementation of hook_form_FORM_ID_alter().
+ * Alter the Site Login form.
+ */
 function admin_only_mode_form_user_login_alter(&$form, $form_state) {
   // If the site is in admin-only mode, show the message at the top of this form
   $in_admin_only = variable_get('admin_only_mode',FALSE);
@@ -45,25 +45,10 @@ function admin_only_mode_form_user_login_alter(&$form, $form_state) {
   }
 }
 
-function admin_only_mode_user_login_validator($form, &$form_state) {
-
-  $in_admin_only = variable_get('admin_only_mode',FALSE);
-
-  if ($in_admin_only) {
-
-    $myuser = user_load(array('name' => $form_state['values']['name']));
-
-    if ($myuser->uid != 1) {
-      form_set_error('name', t('Sorry, only the admin user may login currently'));
-      watchdog('admin_only_mode', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
-    }
-  }
-}
-
 /**
-* Implementation of hook_form_FORM_ID_alter().
-* Alter the Site Maintenance form
-*/
+ * Implementation of hook_form_FORM_ID_alter().
+ * Alter the Site Maintenance form.
+ */
 function admin_only_mode_form_system_site_maintenance_settings_alter(&$form, $form_state) {
   $form["admin_only_mode_fieldset"] = array(
     "#title" => "Admin Only Mode",
@@ -87,3 +72,57 @@ function admin_only_mode_form_system_site_maintenance_settings_alter(&$form, $fo
     "#default_value" => variable_get('admin_only_mode_message', ''),
   );
 }
+
+/**
+ * Validator for user_login form.
+ *
+ * @see admin_only_mode_form_user_login_alter()
+ */
+function admin_only_mode_user_login_validator($form, &$form_state) {
+
+  $in_admin_only = variable_get('admin_only_mode',FALSE);
+
+  if ($in_admin_only) {
+
+    $myuser = user_load(array('name' => $form_state['values']['name']));
+
+    if ($myuser->uid != 1) {
+      form_set_error('name', t('Sorry, only the admin user may login currently'));
+      watchdog('admin_only_mode', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
+    }
+  }
+}
+
+/**
+ * Sets whether we are in admin-only mode.
+ *
+ * @param $mode 
+ *   Integer setting the admin-only mode state -- 1 for on, 0 for off.
+ * @param $clearcache
+ *   Boolean whether to clear the cachse after setting the state.  Defaults to TRUE.
+ */
+function admin_only_mode_set($mode, $clearcache=TRUE) {
+  $mode = $mode ? 1 : 0;
+  variable_set('admin_only_mode',$mode);
+
+  if ($clearcache) {
+    cache_clear_all();
+  }
+}
+
+/**
+ * Sets the admin-only message, displayed on auto-logout and the login form.
+ *
+ * @param $message 
+ *   A string containing the admin-only message.
+ * @param $clearcache
+ *   Boolean whether to clear the cachse after setting the state.  Defaults to TRUE.
+ */
+function admin_only_mode_set_message($message, $clearcache=TRUE) {
+  variable_set('admin_only_mode_message',$message);
+
+  if ($clearcache) {
+    cache_clear_all();
+  }
+}
+
