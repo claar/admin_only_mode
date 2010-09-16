@@ -84,6 +84,6 @@ function admin_only_mode_form_system_site_maintenance_settings_alter(&$form, $fo
     "#type" => "textarea",
     "#title" => t("Site admin-only message"),
     "#description" => t("Message to show visitors when the site is in admin-only mode. Leave this area empty to disable the display of a message."),
-    "#default_value" => variable_get('admin_only_mode_message', t("@sitename is currently in maintenance. During this maintenance only the admin user may login.", array("@sitename" => variable_get('site_name', 'drupal')))),
+    "#default_value" => variable_get('admin_only_mode_message', ''),
   );
 }
