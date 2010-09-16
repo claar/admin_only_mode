@@ -33,7 +33,7 @@ function admin_only_mode_init() {
 function admin_only_mode_form_user_login_alter(&$form, $form_state) {
   // If the site is in admin-only mode, show the message at the top of this form
   $in_admin_only = variable_get('admin_only_mode',FALSE);
-  $message = variable_get('admin_only_mode_message');
+  $message = variable_get('admin_only_mode_message', '');
   if ($in_admin_only) {
     if (!empty($message)) {
       $form['#prefix'] = $message;
