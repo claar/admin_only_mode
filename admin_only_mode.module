@@ -15,10 +15,20 @@ function admin_only_mode_init() {
   $in_admin_only = variable_get('admin_only_mode',FALSE);
 
   if ($in_admin_only && user_is_logged_in()) {
-    $message = variable_get('admin_only_mode_message');
+    $message = variable_get('admin_only_mode_message','');
     if ($user->uid != 1) {
-      require_once drupal_get_path('module', 'user') .'/user.pages.inc';
-      user_logout(); # Perhaps a little harsh -- TODO: Show a message saying what happened
+      // Code taken from user_logout(), avoiding drupal_goto() to allow message display
+      watchdog('user', 'Session closed for %name.', array('%name' => $user->name));
+
+      // Destroy the current session:
+      session_destroy();
+      module_invoke_all('user', 'logout', NULL, $user);
+
+      // Load the anonymous user
+      $user = drupal_anonymous_user();
+      drupal_get_messages(NULL, TRUE); // thow away error messages from complaining modules
+      drupal_set_message(t('Sorry, you do not currently have permission to be logged in.'), 'warning');
+
     } else if (!empty($message)) {
       // Show a message to the admin reminding him that we're in admin-only mode
       drupal_set_message($message, 'status', FALSE /*repeat*/);
