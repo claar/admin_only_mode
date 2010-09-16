@@ -89,11 +89,9 @@ function admin_only_mode_form_system_site_maintenance_settings_alter(&$form, $fo
  * @see admin_only_mode_form_user_login_alter()
  */
 function admin_only_mode_user_login_validator($form, &$form_state) {
-
   $in_admin_only = variable_get('admin_only_mode',FALSE);
 
   if ($in_admin_only) {
-
     $myuser = user_load(array('name' => $form_state['values']['name']));
 
     if ($myuser->uid != 1) {
